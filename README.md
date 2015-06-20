@@ -15,4 +15,4 @@
 
 ## Демонстрация работы
 
-![alt text](http://i.imgur.com/XjbRC5s.gif "Logo Title Text 1")
+![alt text](http://i.imgur.com/XjbRC5s.gif "cleaner demo")
