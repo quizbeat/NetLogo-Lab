@@ -1,7 +1,12 @@
 breed [cleaners cleaner]
 patches-own [ dirt? ]
-cleaners-own [ at-position? ]
-globals [ amount width height ] ;; -w..+w, -h..+h
+cleaners-own [ at-position? id ]
+globals [ 
+  amount ;; amount of cleaners
+  lpc ;; lines per cleaner
+  width ;; width of world
+  height ;; height of world
+]
 
 
 to Setup
@@ -9,6 +14,7 @@ to Setup
   ;; default values
   set width 0
   set height 0
+  set lpc 4
   ;; init world
   ask patches [
     ;; remember world size
@@ -21,19 +27,55 @@ to Setup
     if random-float 10 < 2 [ set-dirt true ]
   ]
   ;; compute amount of cleaners 
-  set amount (height / 2) ;; 1 cleaner at 4 lines
+  set amount ((height + 1) / lpc) ;; 1 cleaner at 4 lines
+  if (height + 1) mod lpc > 0 [
+    set amount (amount + 1)
+  ]
   ;; init cleaners
+  let next-id 0
   create-cleaners amount [
     ;; put cleaner
     setxy random width random height
     set color white
+    set id next-id
     ;; set direction
     set heading 270
     set at-position? false
     ;; check start position
-    if xcor = width and ycor = -1 * height [
+    if xcor = 0 and ycor = 0 [
       set at-position? true
     ]
+    set next-id (next-id + 1)
+  ]
+end
+
+
+to go
+  ask cleaners [ 
+    ifelse at-position? [
+      step
+    ] [ ;;else 
+      move-to-position
+      if xcor = 0 and ycor = (lpc * id) [
+        set at-position? true ;; moved to position
+        set heading 90 ;; set start direction
+      ]
+    ]
+  ]
+  tick
+end
+
+
+;; move cleaner to custom start position
+to move-to-position
+  ifelse ycor != (lpc * id) [
+    ifelse ycor < (lpc * id) [
+      set heading 0
+    ] [ set heading 180 ]
+    fd 1
+  ] [
+    set heading 270
+    fd 1
   ]
 end
 
@@ -46,56 +88,19 @@ to set-dirt [ val? ]
 end
 
 
-to-report wall-check-for [ i ]
-  if heading = 90 and xcor = width [ report true ]
-  if heading = 270 and xcor = -1 * width [ report true ]
-  if heading = 0 and ycor = height [ report true ]
-  if heading = 180 and ycor = -1 * height [ report true ]
-  report false 
+to suck
+  ask patch-here [ 
+    set-dirt false 
+  ]
 end
 
 
 to-report obstacle?
   if heading = 90 and xcor = width [ report true ]
-  if heading = 270 and xcor = -1 * width [ report true ]
-  if heading = 0 and ycor = height [ report true ]
-  if heading = 180 and ycor = -1 * height [ report true ]
+  if heading = 270 and xcor = 0 [ report true ]
+  if heading = 0 and (ycor = (id * lpc + (lpc - 1)) or ycor = height) [ report true ]
+  if heading = 180 and ycor = (id * lpc) [ report true ]
   report false
-end
-
-
-to go
-  ask cleaners [ 
-    ifelse at-position? [
-      ;;set heading 270
-      step
-    ] [ ;;else 
-      move-to-position
-      if xcor = width and ycor = -1 * height [
-        set at-position? true ;; moved to position
-        set heading 270 ;; set start direction
-      ]
-    ]
-  ]
-  tick
-end
-
-
-to move-to-position
-  ifelse xcor != width [
-    set heading 90
-    fd 1
-  ] [
-    set heading 180
-    fd 1
-  ]
-end
-
-
-to suck
-  ask patch-here [ 
-    set-dirt false 
-  ]
 end
 
 
@@ -108,7 +113,6 @@ to step
     ]
     rt angle
     ifelse obstacle? [
-      ;; rt angle 
       die
     ] [ ;; else
       fd 1 
@@ -123,9 +127,9 @@ GRAPHICS-WINDOW
 189
 30
 539
-401
-8
-8
+621
+-1
+-1
 20.0
 1
 10
@@ -136,10 +140,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--8
-8
--8
-8
+0
+16
+0
+27
 0
 0
 1
