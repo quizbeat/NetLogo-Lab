@@ -14,7 +14,7 @@ to Setup
   ;; default values
   set width 0
   set height 0
-  set lpc 1
+  set lpc 4
   ;; init world
   ask patches [
     ;; remember world size
@@ -126,8 +126,8 @@ end
 GRAPHICS-WINDOW
 189
 30
-1399
-821
+619
+401
 -1
 -1
 20.0
@@ -141,9 +141,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-59
+20
 0
-37
+16
 0
 0
 1
